@@ -1,10 +1,12 @@
 from flask import request, jsonify
 from sqlalchemy import select
 from marshmallow import ValidationError
-from app.models import Mechanic, ServiceTicket, Customer, db
+from app.models import Mechanic, SerializedPart, ServiceTicket, Customer, db
 from .schemas import service_ticket_schema, service_tickets_schema
 from app.blueprint.mechanics.schemas import mechanics_schema
 from . import service_tickets_bp
+from app.extensions import limiter
+from app.blueprint.serializedPart.schemas import serialized_parts_schema
 
 
 # create ticket 
@@ -28,6 +30,7 @@ def create_ticket():
 
 # get tickets 
 @service_tickets_bp.route('/', methods=['GET'])
+@limiter.exempt
 def get_tickets():
     query = select(ServiceTicket)
     tickets = db.session.execute(query).scalars().all()
@@ -39,6 +42,7 @@ def get_tickets():
 
 # get a specific ticket
 @service_tickets_bp.route('/<int:service_ticket_id>', methods=['GET'])
+@limiter.exempt
 def get_ticket(service_ticket_id):
     ticket = db.session.get(ServiceTicket, service_ticket_id)
     
@@ -49,6 +53,7 @@ def get_ticket(service_ticket_id):
 
 # add a mechanic to the ticket
 @service_tickets_bp.route('/<int:ticket_id>/add-mechanic/<int:mechanic_id>', methods=['PUT'])
+@limiter.limit("5/hour")
 def add_mechanic(ticket_id, mechanic_id):
     ticket = db.session.get(ServiceTicket, ticket_id)
     mechanic = db.session.get(Mechanic, mechanic_id)
@@ -68,6 +73,7 @@ def add_mechanic(ticket_id, mechanic_id):
 
 # remove a mechanic from the ticket
 @service_tickets_bp.route('/<int:ticket_id>/remove-mechanic/<int:mechanic_id>', methods=['PUT'])
+@limiter.limit("5/hour")
 def remove_mechanic(ticket_id, mechanic_id):
     ticket = db.session.get(ServiceTicket, ticket_id)
     mechanic = db.session.get(Mechanic, mechanic_id)
@@ -83,3 +89,21 @@ def remove_mechanic(ticket_id, mechanic_id):
             }), 200
         return jsonify({"message": "invalid ID"}), 400
     return jsonify({"message": "ticket or mechanic not found"}), 400
+
+
+@service_tickets_bp.route('/<int:ticket_id>/add-part/<int:part_id>', methods=['PUT'])
+def add_part(ticket_id, part_id):
+    ticket = db.session.get(ServiceTicket, ticket_id)
+    part = db.session.get(SerializedPart, part_id)
+    
+    if ticket and part:
+        if not part.ticket_id:
+            ticket.serialized_parts.append(part)
+            db.session.commit()
+            return jsonify({
+                "message": f"{part.description.part_name} added to ticket",
+                "ticket": service_ticket_schema.dump(ticket),
+                "parts": serialized_parts_schema.dump(ticket.serialized_parts)
+            }), 200
+        return jsonify({"message": "part already assigned to ticket"}), 400
+    return jsonify({"message": "ticket or part not found"}), 404
