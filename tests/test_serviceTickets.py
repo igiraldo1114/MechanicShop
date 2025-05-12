@@ -31,6 +31,7 @@ class TestServiceTicket(unittest.TestCase):
             password=generate_password_hash("password123")
         )
         db.session.add(self.mechanic)
+        db.session.commit()
 
         self.inventory_part = Inventory(
             part_name="Brake Pad",

@@ -3,9 +3,10 @@ import jose
 from datetime import datetime, timedelta, timezone
 from flask import request, jsonify
 from functools import wraps
+import os
 
 
-SECRET_KEY = 'super secret secrets'
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'super secret secrets'
 
 def encode_mechanic_token(mechanic_id):
     payload = {
