@@ -7,9 +7,9 @@ from functools import wraps
 
 SECRET_KEY = 'super secret secrets'
 
-def encode_token(mechanic_id):
+def encode_mechanic_token(mechanic_id):
     payload = {
-        'exp': datetime.now(timezone.utc) + timedelta(days=0, hours=1),
+        'exp': datetime.now(timezone.utc) + timedelta(days=30, hours=0),
         'iat': datetime.now(timezone.utc),
         'sub': str(mechanic_id)
     }
@@ -20,9 +20,9 @@ def encode_token(mechanic_id):
 
 
 
-def token_required(f):
+def token_mechanic_required(f):
     @wraps(f)
-    def decorator(*args, **kwargs):
+    def Mechanicdecorator(*args, **kwargs):
         token = None
         
         if 'Authorization' in request.headers:
@@ -41,12 +41,12 @@ def token_required(f):
             return jsonify({'message': 'Invalid token!'}), 401
         
         return f(*args, **kwargs)
-    return decorator
+    return Mechanicdecorator
 
 
 def encode_token(customer_id):
     payload = {
-        'exp': datetime.now(timezone.utc) + timedelta(days=0, hours=1),
+        'exp': datetime.now(timezone.utc) + timedelta(days=15, hours=0),
         'iat': datetime.now(timezone.utc),
         'sub': str(customer_id)
     }
@@ -60,7 +60,6 @@ def token_required(f):
     def decorator(*args, **kwargs):
         token = None
 
-        # Get token from Authorization header
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split()[1]
 
@@ -68,14 +67,14 @@ def token_required(f):
             return jsonify({"message": "Token is missing!"}), 401
 
         try:
-            # Decode token
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            customer_id = data['sub']
+            request.customer_id = int(data['sub'])
+
         except exceptions.ExpiredSignatureError:
             return jsonify({"message": "Token has expired!"}), 401
         except exceptions.JWTError:
             return jsonify({"message": "Invalid token!"}), 401
 
-        return f(customer_id, *args, **kwargs)  # Pass customer_id to the wrapped function
+        return f(*args, **kwargs)  
 
     return decorator

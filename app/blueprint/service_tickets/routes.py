@@ -6,7 +6,7 @@ from .schemas import service_ticket_schema, service_tickets_schema
 from app.blueprint.mechanics.schemas import mechanics_schema
 from . import service_tickets_bp
 from app.extensions import limiter
-from app.blueprint.serializedPart.schemas import serialized_parts_schema
+from app.blueprint.serializedPart.schemas import responses_schema 
 
 
 # create ticket 
@@ -14,19 +14,22 @@ from app.blueprint.serializedPart.schemas import serialized_parts_schema
 @service_tickets_bp.route('/', methods=['POST'])
 def create_ticket():
     try:
-        ticket_data = service_ticket_schema.load(request.json)
+        ticket_data = service_ticket_schema.load(request.json, partial=("customer",))
     except ValidationError as e:
         return jsonify(e.messages), 400
-    
-    customer = db.session.query(Customer, ticket_data['customer_id'])
-    
-    if customer:
-        new_ticket = ServiceTicket(**ticket_data)
-        db.session.add(new_ticket)
-        db.session.commit()
-        
-        return service_ticket_schema.jsonify(new_ticket), 201
-    return jsonify({"message": "invalid customer id"}), 400
+
+    customer_id = request.json.get('customer_id') 
+
+    customer = db.session.get(Customer, customer_id)
+    if not customer:
+        return jsonify({"message": "Invalid customer ID"}), 400
+
+    ticket_data['customer_id'] = customer_id
+    new_ticket = ServiceTicket(**ticket_data)
+    db.session.add(new_ticket)
+    db.session.commit()
+
+    return service_ticket_schema.jsonify(new_ticket), 201
 
 # get tickets 
 @service_tickets_bp.route('/', methods=['GET'])
@@ -103,7 +106,19 @@ def add_part(ticket_id, part_id):
             return jsonify({
                 "message": f"{part.description.part_name} added to ticket",
                 "ticket": service_ticket_schema.dump(ticket),
-                "parts": serialized_parts_schema.dump(ticket.serialized_parts)
+                "parts": responses_schema.dump(ticket.serialized_parts)
             }), 200
         return jsonify({"message": "part already assigned to ticket"}), 400
     return jsonify({"message": "ticket or part not found"}), 404
+
+# delete a ticket
+@service_tickets_bp.route('/<int:ticket_id>', methods=['DELETE'])
+@limiter.limit("5/hour")
+def delete_ticket(ticket_id):
+    ticket = db.session.get(ServiceTicket, ticket_id)
+    
+    if ticket:
+        db.session.delete(ticket)
+        db.session.commit()
+        return jsonify({"message": "ticket deleted successfully"}), 200
+    return jsonify({"message": "ticket not found"}), 404

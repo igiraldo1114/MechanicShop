@@ -1,0 +1,1150 @@
+#app/static/swagger.yaml
+
+swagger: '2.0'
+info:
+  title: "Your API"
+  description: "This is an API"
+  version: "1.0.0"
+host: "127.0.0.1:5000"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+
+
+paths:
+  /mechanics/login:
+    post:
+      tags:
+        - Mechanics
+      summary: Mechanics login
+      description: Mechanics login credentials using email and password
+      parameters:
+      - in: body
+        name: body
+        description: Mechanic login credentials
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+            password:
+              type: string 
+      responses:
+        201:
+          description: Mechanic login successful
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+          examples:
+            application/json:
+              token: "your_token_here"
+
+  /mechanics:
+    post:
+      tags:
+        - Mechanics
+      summary: Create a new mechanic
+      description: Info to create the mechanic
+      parameters:
+        - in: body
+          name: body
+          description: Mechanic information
+          required: true
+          schema:
+            $ref: '#/definitions/MechanicPayload'
+      responses:
+        201:
+          description: mechanic created successfully
+          schema:
+            $ref: '#/definitions/MechanicResponse'
+          examples:
+            application/json:
+              email: "john@email.com"
+              id: 1
+              name: "John Doe"
+              password: "hashed_password"
+              salary: 50000
+              tickets: []
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+
+    get:
+      tags:
+        - Mechanics
+      summary: get all mechanics
+      description: retrieve all mechanics
+      responses:
+        200:
+          description: mechanics retrieved successfully
+          schema:
+            $ref: '#/definitions/MechanicListResponse'
+
+    put:
+      tags:
+        - Mechanics
+      summary: update mechanic
+      description: updating mechanic information
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: body
+          name: body
+          description: Mechanic information used for update
+          required: true
+          schema:
+            $ref: '#/definitions/MechanicPayload'
+      responses:
+        201:
+          description: mechanic updated successfully
+          schema:
+            $ref: '#/definitions/MechanicResponse'
+          examples:
+            application/json:
+              email: "john@email.com"
+              id: 1
+              name: "John Doe"
+              salary: 50000
+              password: "hashed_password"
+              tickets: []
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+
+    delete:
+      tags:
+        - Mechanics
+      summary: "Enpoint to delete a member"
+      description: "Endpoint to delete a member. Requires token authentication, member must be logged in to delete their account"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Successfully Deleted member"           
+          schema:
+            $ref: "#/definitions/DeleteMechanicResponse"
+          examples:
+            application/json:
+              message: "successfully deleted mechanic."
+
+  /mechanics/{mechanic_id}:
+    get:
+      tags:
+        - Mechanics
+      summary: Get a mechanic by ID
+      description: Retrieve a mechanic by their ID
+      parameters:
+        - name: mechanic_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the mechanic to retrieve
+      responses:
+        200:
+          description: Mechanic retrieved successfully
+          schema:
+            $ref: '#/definitions/MechanicResponse'
+
+  /mechanics/activity:
+    get:
+      tags:
+        - Mechanics
+      summary: Get all mechanics with activity
+      description: Retrieve all mechanics with their activity
+      responses:
+        200:
+          description: Mechanics retrieved successfully
+          schema:
+              mechanics:
+                type: array
+                items:
+                  $ref: '#/definitions/MechanicListResponse'
+
+  /mechanics/search:
+    get:
+      tags:
+        - Mechanics
+      summary: Search for mechanics
+      description: Search for mechanics by name
+      parameters:
+        - name: search
+          in: query
+          required: true
+          type: string
+          description: Search query (name)
+      responses:
+        200:
+          description: Mechanics retrieved successfully
+          schema:
+            type: object
+            properties:
+              mechanics:
+                type: array
+                items:
+                  $ref: '#/definitions/MechanicListResponse'
+# ---------------------------------------------------------------------
+
+  /customers/login:
+    post:
+      tags:
+        - Customers
+      summary: customers login
+      description: customers login credentials using email and password
+      parameters:
+      - in: body
+        name: body
+        description: customer login credentials
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+            password:
+              type: string 
+      responses:
+        201:
+          description: customer login successful
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+          examples:
+            application/json:
+              token: "your_token_here"
+
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Create a new customer
+      description: Info to create the customer
+      parameters:
+        - in: body
+          name: body
+          description: Customer information
+          required: true
+          schema:
+            $ref: '#/definitions/CustomerPayload'
+      responses:
+        201:
+          description: customer created successfully
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+
+    put:
+      tags:
+        - Customers
+      summary: update customer
+      description: updating customer information
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: body
+          name: body
+          description: Customer information used for update
+          required: true
+          schema:
+            $ref: '#/definitions/CustomerPayload'
+      responses:
+        201:
+          description: customer updated successfully
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+      
+    delete:
+      tags:
+        - Customers
+      summary: "Enpoint to delete a customer"
+      description: "Endpoint to delete a customer. Requires token authentication, member must be logged in to delete their account"
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: "Successfully Deleted member"           
+          schema:
+            $ref: "#/definitions/DeleteCustomerResponse"
+          examples:
+            application/json:
+              message: "successfully deleted customer."
+
+  /customers/{customer_id}:
+    get:
+      tags:
+        - Customers
+      summary: Get a customer by ID
+      description: Retrieve a customer by their ID
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the customer to retrieve
+      responses:
+        200:
+          description: Customer retrieved successfully
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+
+  /customers/paginate?page={page}&per_page={per_page}:
+    get:
+      tags:
+        - Customers
+      summary: Get all customers with pagination
+      description: Retrieve all customers with pagination
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Number of customers per page
+      responses:
+        200:
+          description: Customers retrieved successfully
+          schema:
+            type: object
+            properties:
+              total_customers:
+                type: integer
+              page:
+                type: integer
+              per_page:
+                type: integer
+              customers:
+                type: array
+                items:
+                  $ref: '#/definitions/CustomerListResponse'
+          examples:
+            application/json:
+              total_customers: 1
+              page: 1
+              per_page: 1
+              customers:
+                - email: "kaliuu@email.com"
+                  id: 1
+                  name: "Kali Uchi"
+                  password: "scrypt:32768:8:1$C1paC1ITGzKkKwz3$0a18aeffee56368f8f66a6684ab93f7e6dc7ab1161d1b1e5fead519fda9e79ca32dbf238eedbbe4282a83fe07c2c3b9dbf7d4fed5a93deb7e2f7f0bcb73f5b6a"
+                  phone: "123-678-2223"
+
+  /customers/my-tickets:
+    get:
+      tags:
+        - Customers
+      summary: Get all tickets for a customer
+      description: Retrieve all tickets for a customer
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Tickets retrieved successfully
+          schema:
+            type: object
+            properties:
+              tickets:
+                type: array
+                items:
+                  type: integer
+            examples:
+              application/json:
+                tickets: [1, 2, 3]
+
+  /customers/search:
+    get:
+      tags:
+        - Customers
+      summary: Search for customers
+      description: Search for customers by name
+      parameters:
+        - name: search
+          in: query
+          required: true
+          type: string
+          description: Search query (name)
+      responses:
+        200:
+          description: Customers retrieved successfully
+          schema:
+            type: object
+            properties:
+              customers:
+                type: array
+                items:
+                  $ref: '#/definitions/CustomerListResponse'
+# -------------------------------------------------------------------------=
+  /inventory/paginate?page={page}&per_page={per_page}:
+    get:
+      tags:
+        - Inventory
+      summary: Get all inventory items with pagination
+      description: Retrieve all inventory items with pagination
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Number of inventory items per page
+      responses:
+        200:
+          description: Inventory items retrieved successfully
+          schema:
+            type: object
+            properties:
+              total_items:
+                type: integer
+              page:
+                type: integer
+              per_page:
+                type: integer
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/InventoryListResponse'
+
+  /inventory:
+    post:
+      tags:
+        - Inventory
+      summary: Create a new inventory item
+      description: Info to create the inventory item
+      parameters:
+        - in: body
+          name: body
+          description: Inventory item information
+          required: true
+          schema:
+            type: object
+            properties:
+              part_name:
+                type: string
+              brand:
+                type: string
+              price:
+                type: integer
+      responses:
+        201:
+          description: Inventory item created successfully
+          schema:
+            $ref: '#/definitions/InventoryListResponse'
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+
+  /inventory/{inventory_id}:
+    get:
+      tags:
+        - Inventory
+      summary: Get an inventory item by ID
+      description: Retrieve an inventory item by its ID
+      parameters:
+        - name: inventory_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the inventory item to retrieve
+      responses:
+        200:
+          description: Inventory item retrieved successfully
+          schema:
+            $ref: '#/definitions/InventoryListResponse'
+
+    put:
+      tags:
+        - Inventory
+      summary: Update an inventory item
+      description: Update an inventory item by its ID
+      parameters:
+        - name: inventory_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the inventory item to update
+        - in: body
+          name: body
+          description: Inventory item information used for update
+          required: true
+          schema:
+            type: object
+            properties:
+              part_name:
+                type: string
+              brand:
+                type: string
+              price:
+                type: integer
+      responses:
+        200:
+          description: Inventory item updated successfully
+          schema:
+            $ref: '#/definitions/InventoryListResponse'
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input"
+              
+    delete:
+      tags:
+        - Inventory
+      summary: Delete an inventory item by ID
+      description: Delete an inventory item by its ID
+      parameters:
+        - name: inventory_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the inventory item to delete
+      responses:
+        200:
+          description: Inventory item deleted successfully
+          schema:
+            $ref: '#/definitions/DeleteInventoryResponse'
+          examples:
+            application/json:
+              message: "successfully deleted inventory item."
+# ----------------------------------------------------------------------
+  /serialized-part/paginate?page={page}&per_page={per_page}:
+    get:
+      tags:
+        - Serialized Parts
+      summary: Get all serialized parts with pagination
+      description: Retrieve all serialized parts with pagination
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Number of serialized parts per page
+      responses:
+        200:
+          description: Serialized parts retrieved successfully
+          schema:
+            type: object
+            properties:
+              total_parts:
+                type: integer
+              page:
+                type: integer
+              per_page:
+                type: integer
+              parts:
+                type: array
+                items:
+                  $ref: '#/definitions/serializedPartsListResponse'
+
+  /serialized-part:
+    post:
+      tags:
+        - Serialized Parts
+      summary: Create a new serialized part
+      description: Info to create the serialized part
+      parameters:
+        - in: body
+          name: body
+          description: Serialized part information
+          required: true
+          schema:
+            type: object
+            properties:
+              desc_id:
+                type: integer
+      responses:
+        201:
+          description: Serialized part created successfully
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Success message
+              part:
+                type: object
+                properties:
+                  desc_id:
+                    type: integer
+                    description: ID of the inventory description
+                  id:
+                    type: integer
+                    description: ID of the serialized part
+                  ticket_id:
+                    type: integer
+                    description: ID of the associated ticket (if any)
+          examples:
+            application/json:
+              message: "Toyota Tires added successfully"
+              part:
+                desc_id: 2
+                id: 5
+                ticket_id: null
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "Invalid input" 
+
+
+  /serialized-part/stock/{description_id}:
+    get:
+      tags:
+        - Serialized Parts
+      summary: Get all serialized parts by description ID
+      description: Retrieve all serialized parts by their description ID
+      parameters:
+        - name: description_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the description to retrieve serialized parts for
+      responses:
+        200:
+          description: Serialized parts retrieved successfully
+          schema:
+            type: object
+            properties:
+              Item:
+                type: string
+                description: name of inventory item
+              stock:
+                type: integer
+                description: number of serialized parts in stock
+          examples:
+            application/json:
+              Item: "part_name"
+              stock: 10
+
+  /serialized-part/{serialized_part_id}:
+    delete:
+      tags:
+        - Serialized Parts
+      summary: Delete a serialized part by ID
+      description: Delete a serialized part by its ID
+      parameters:
+        - name: serialized_part_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the serialized part to delete
+      responses:
+        200:
+          description: Serialized part deleted successfully
+          schema:
+            $ref: '#/definitions/DeleteInventoryResponse'
+          examples:
+            application/json:
+              message: "successfully deleted serialized part."
+
+# ----------------------------------------------------------------------
+
+  /service-ticket:
+    post:
+      tags:
+        - Service Ticket
+      summary: Create a new service ticket
+      description: Info to create the service ticket
+      parameters:
+        - in: body
+          name: body
+          description: Service ticket information
+          required: true
+          schema:
+            $ref: '#/definitions/ServiceTicketPayload'
+      responses:
+        201:
+          description: Service ticket created successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+          examples:
+            application/json:
+              customer: 1
+              customer_id: 1
+              id: 4
+              mechanics: []
+              serialized_parts: []
+              service_date: "2025-05-09"
+              service_desc: "oil change"
+              vin: "BDHJWBDJ4BE....."
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "invalid customer id"
+
+    get:
+      tags:
+        - Service Ticket
+      summary: Get all service tickets
+      description: Retrieve all service tickets
+      responses:
+        200:
+          description: Service tickets retrieved successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+        404:
+          description: No service tickets found
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "no service tickets found"
+
+  /service-ticket/{ticket_id}:
+    get:
+      tags:
+        - Service Ticket
+      summary: Get a service ticket by ID
+      description: Retrieve a service ticket by its ID
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the service ticket to retrieve
+      responses:
+        200:
+          description: Service ticket retrieved successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+        404:
+          description: Service ticket not found
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "no ticket found"
+  
+    delete:
+      tags:
+        - Service Ticket
+      summary: Delete a service ticket by ID
+      description: Delete a service ticket by its ID
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the service ticket to delete
+      responses:
+        200:
+          description: Service ticket deleted successfully
+          schema:
+            $ref: '#/definitions/DeleteInventoryResponse'
+          examples:
+            application/json:
+              message: "ticket deleted successfully"
+        400:
+          description: Invalid input
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            examples:
+              application/json:
+                message: "ticket not found"
+
+  /service-ticket/{ticket_id}/add-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - Service Ticket
+      summary: Add a mechanic to a service ticket
+      description: Add a mechanic to a service ticket by their IDs
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the service ticket to update
+        - name: mechanic_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the mechanic to add to the service ticket
+      responses:
+        200:
+          description: Mechanic added to service ticket successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+          examples:
+            application/json:
+              customer: 1
+              customer_id: 1
+              id: 4
+              mechanics: [1]
+              serialized_parts: []
+              service_date: "2025-05-09"
+              service_desc: "oil change"
+              vin: "BDHJWBDJ4BE....."
+
+  /service-ticket/{ticket_id}/remove-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - Service Ticket
+      summary: Remove a mechanic from a service ticket
+      description: Remove a mechanic from a service ticket by their IDs
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the service ticket to update
+        - name: mechanic_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the mechanic to remove from the service ticket
+      responses:
+        200:
+          description: Mechanic removed from service ticket successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+          examples:
+            application/json:
+              customer: 1
+              customer_id: 1
+              id: 4
+              mechanics: []
+              serialized_parts: []
+              service_date: "2025-05-09"
+              service_desc: "oil change"
+              vin: "BDHJWBDJ4BE....."
+
+  /service-ticket/{ticket_id}/add-part/{part_id}:
+    put:
+      tags:
+        - Service Ticket
+      summary: Add a part to a service ticket
+      description: Add a part to a service ticket by their IDs
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the service ticket to update
+        - name: part_id
+          in: path
+          required: true
+          type: integer
+          description: ID of the part to add to the service ticket
+      responses:
+        200:
+          description: Part added to service ticket successfully
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+          examples:
+            application/json:
+              customer: 1
+              customer_id: 1
+              id: 4
+              mechanics: []
+              serialized_parts: [1]
+              service_date: "2025-05-09"
+              service_desc: "oil change"
+              vin: "BDHJWBDJ4BE....."
+
+
+
+definitions:
+  ServiceTicketPayload:
+    type: object
+    properties:
+      customer_id:
+        type: integer
+      vin:
+        type: string
+      service_date:
+        type: string
+        format: date
+      service_desc:
+        type: string
+
+  ServiceTicketResponse:
+    type: object
+    properties:
+      customer:
+        type: integer
+      customer_id:
+        type: integer
+      id:
+        type: integer
+      mechanics:
+        type: array
+        items:
+          type: integer
+      serialized_parts:
+        type: array
+        items:
+          type: integer
+      service_date:
+        type: string
+        format: date
+      service_desc:
+        type: string
+      vin:
+        type: string
+
+  serializedPartsListResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+        desc_id:
+          type: integer
+        ticket_id:
+          type: integer
+
+  DeleteInventoryResponse:
+    type: object
+    properties:
+      message:
+        type: string
+
+  InventoryListResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+        part_name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: integer
+
+  DeleteCustomerResponse:
+    type: object
+    properties:
+      message:
+        type: string
+
+  CustomerPayload:
+    type: object
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+
+  CustomerResponse:
+    type: object
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+  CustomerListResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        email:
+          type: string
+        id:
+          type: integer
+        name:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+
+  DeleteMechanicResponse:
+    type: object
+    properties:
+      message:
+        type: string
+
+  MechanicPayload:
+    type: object
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      salary:
+        type: integer
+  MechanicResponse:
+    type: object
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      salary:
+        type: integer
+      tickets:
+        type: array
+        items:
+          type: integer     
+
+  MechanicListResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        email:
+          type: string
+        id:
+          type: integer
+        name:
+          type: string
+        password:
+          type: string
+        salary:
+          type: integer
+        tickets:
+          type: array
+          items:
+            type: integer
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        

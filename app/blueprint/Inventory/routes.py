@@ -1,7 +1,6 @@
 from flask import request, jsonify
 from sqlalchemy import select
 from marshmallow import ValidationError
-# from app.utils.auth import encode_token, token_required
 from . import inventory_bp
 from .schemas import inventory_schema, inventorys_schema
 from app.models import Inventory, db
@@ -29,15 +28,15 @@ def page_inventory():
     paginated_descriptions = descriptions[start:end]
     
     return jsonify({
-        'total_customers': total_descriptions,
+        'total_items': total_descriptions,
         'page': page,
         'per_page': per_page,
-        'customers': inventorys_schema.dump(paginated_descriptions)
+        'items': inventorys_schema.dump(paginated_descriptions)
     }), 200
 
 
 @inventory_bp.route('/', methods=['POST'])
-@limiter.limit("15/hour")
+@limiter.exempt
 def create_part():
     try:
         description_data = inventory_schema.load(request.json)
@@ -49,19 +48,6 @@ def create_part():
     db.session.add(new_description)
     db.session.commit()
     return inventory_schema.jsonify(new_description), 201
-
-
-@inventory_bp.route('/', methods=['GET'])
-@limiter.exempt
-@cache.cached(timeout=60)
-def get_part_descriptions():
-    try:
-        query = select(Inventory)
-        result = db.session.execute(query).scalars().all()
-        return inventorys_schema.jsonify(result), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500  
-    
 
     
 @inventory_bp.route('/<int:inventory_id>', methods=['GET'])
@@ -105,7 +91,7 @@ def delete_inventory_item(inventory_id):
         
     db.session.delete(description)
     db.session.commit()
-    return jsonify({"message": "description deleted successfully"}), 200
+    return jsonify({"message": "successfully deleted inventory item"}), 200
 
 
 

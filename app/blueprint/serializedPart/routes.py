@@ -3,7 +3,7 @@ from sqlalchemy import select
 from marshmallow import ValidationError
 from . import serializedparts_bp
 from .schemas import serialized_part_schema, serialized_parts_schema
-from app.models import SerializedPart, db
+from app.models import SerializedPart, db, Inventory
 from app.extensions import limiter, cache
     
 
@@ -43,50 +43,22 @@ def create_part():
     except ValidationError as e:
         return jsonify(e.messages), 400
 
+    desc_id = part_data.get('desc_id')
+    inventory_part = db.session.get(Inventory, desc_id)
+    if not inventory_part:
+        return jsonify({"message": "Invalid desc_id. No matching inventory part found."}), 400
+
     new_part = SerializedPart(**part_data)
-    
     db.session.add(new_part)
     db.session.commit()
     return jsonify({
-        "message": f"{new_part.description.brand} {new_part.description.part_name} added successfully",
+        "message": f"{inventory_part.brand} {inventory_part.part_name} added successfully",
         "part": serialized_part_schema.dump(new_part)
-        
-        }), 201
-
-
-@serializedparts_bp.route('/', methods=['GET'])
-@limiter.exempt
-@cache.cached(timeout=60)
-def get_parts():
-    try:
-        query = select(SerializedPart)
-        result = db.session.execute(query).scalars().all()
-        return serialized_parts_schema.jsonify(result), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500  
+    }), 201
+    
     
 
-@serializedparts_bp.route('/<int:part_id>', methods=['PUT'])
-@limiter.limit("5/hour")
-def update_part(serialized_part_id):
-    query = select(SerializedPart).where(SerializedPart.id == serialized_part_id)
-    part = db.session.execute(query).scalars().first()
-    
-    if part == None:
-        return jsonify({"message: inavlid part id"}), 404
-    
-    try:
-        part_data = serialized_part_schema.load(request.json)
-    except ValidationError as e:
-        return jsonify(e.messages), 400
-    
-    for field, value in part_data.items():
-        setattr(part, field, value)
-        
-    db.session.commit()
-    return serialized_part_schema.jsonify(part), 200
-
-@serializedparts_bp.route('/', methods=['DELETE'])
+@serializedparts_bp.route('/<int:serialized_part_id>', methods=['DELETE'])
 @limiter.limit("5/hour")
 def delete_part(serialized_part_id):
     try:
@@ -95,25 +67,30 @@ def delete_part(serialized_part_id):
         if part:
             db.session.delete(part)
             db.session.commit()
-            return jsonify({"message": "part deleted successfully"}), 200
+            return jsonify({"message": "successfully deleted serialized part."}), 200
         
         return jsonify({"message": "part not found"}), 404
     except Exception as e:
         return jsonify({"error": "An error occurred while deleting the part", "details": str(e)}), 500
     
+@serializedparts_bp.route('/stock/<int:description_id>', methods=['GET'])
+@limiter.exempt
+def get_stock(description_id):
+    inventory_part = db.session.get(Inventory, description_id)
     
+    if not inventory_part:
+        return jsonify({"message": "Inventory part not found"}), 404
+
+    query = select(SerializedPart).join(Inventory).where(Inventory.part_name == inventory_part.part_name)
+    parts = db.session.execute(query).scalars().all()
+    count = len(parts)  
+
+    return jsonify({
+        "Item": inventory_part.part_name, 
+        "stock": count  
+    }), 200
+
+
     
-# @serializedparts_bp.route('/search', methods=['GET'])
-# def search_customers():
-#     email = request.args.get('search')
-    
-#     query = select(Customer).where(Customer.email.ilike(f"%{email}%"))
-#     customer = db.session.execute(query).scalars().all()
-    
-#     if not customer:
-#         return jsonify({"message": "No customers found matching the search"}), 404
-    
-#     return jsonify({
-#         "mechanics": customers_schema.dump(customer)
-#     }), 200
+
     
