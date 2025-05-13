@@ -1,9 +1,12 @@
 from app.models import db
 from app import create_app
+from flask import redirect
 
 app = create_app('ProductionConfig')
 
-    
+@app.route('/', methods=['GET'])
+def index():
+    return redirect('/api/docs')
     
 with app.app_context():
     # db.drop_all()
