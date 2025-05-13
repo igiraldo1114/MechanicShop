@@ -24,8 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip3 install --upgrade pip
-          python -m pip3 install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
 
       - name: Print debugging information
         run: |
@@ -54,8 +54,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip3 install --upgrade pip
-          python -m pip3 install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
 
       - name: Run tests
         run: python -m unittest discover -s tests -p "test_*.py"
